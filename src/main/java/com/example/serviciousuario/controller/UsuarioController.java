@@ -2,8 +2,12 @@ package com.example.serviciousuario.controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -25,12 +29,8 @@ import com.example.serviciousuario.service.AuthService;
 import com.example.serviciousuario.service.RolesService;
 import com.example.serviciousuario.service.UsuarioService;
 
-import lombok.extern.slf4j.Slf4j;
-
-
 @RestController
 @RequestMapping("/usuario")
-@Slf4j
 public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
@@ -38,6 +38,7 @@ public class UsuarioController {
     private RolesService rolesService;
     @Autowired
     private AuthService authService;
+    
 
     @PostMapping("/signin")
     public ResponseEntity<String> login(@RequestBody LoginDTO loginDto) {
@@ -52,94 +53,109 @@ public class UsuarioController {
     }
     
     @GetMapping
-    public List<Usuario> getUsuarios() {       
-       return usuarioService.getAllUsuario();       
+    public CollectionModel<EntityModel<Usuario>> getUsuarios() {
+        List<EntityModel<Usuario>> usuarios = usuarioService.getAllUsuario().stream()
+            .map(usuario -> EntityModel.of(usuario,
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(usuario.getId())).withSelfRel()))
+            .collect(Collectors.toList());
+
+        WebMvcLinkBuilder linkTo = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios());
+        return CollectionModel.of(usuarios, linkTo.withRel("usuarios"));
     }
 
-    @GetMapping("/roles")
-    public List<Roles> getRoles() {       
-       return rolesService.getAllRoles();       
+    @GetMapping("/roles/{id}")
+    public ResponseEntity<?> getRolById(@PathVariable Long id) {
+        Optional<Roles> rol = rolesService.getRolesById(id);
+        if (rol.isPresent()) {
+            EntityModel<Roles> resource = EntityModel.of(rol.get(),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getRolById(id)).withSelfRel());
+            return ResponseEntity.ok(resource);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Rol no encontrado");
+        }
     }
+
+
+    @GetMapping("/roles")
+    public ResponseEntity<CollectionModel<EntityModel<Roles>>> getRoles() {
+        List<EntityModel<Roles>> roles = rolesService.getAllRoles().stream()
+            .map(rol -> EntityModel.of(rol,
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getRolById(rol.getId())).withSelfRel()))
+            .collect(Collectors.toList());
+
+        WebMvcLinkBuilder linkToAllRoles = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getRoles());
+        CollectionModel<EntityModel<Roles>> resources = CollectionModel.of(roles, linkToAllRoles.withRel("all-roles"));
+        return ResponseEntity.ok(resources);
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getUsuarioById(@PathVariable Long id) {
         Optional<Usuario> usuario = usuarioService.getUsuarioById(id);
         if (usuario.isPresent()) {
-            return ResponseEntity.ok(usuario.get());
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
-        } 
-    }   
-  
-    @PostMapping
-    public ResponseEntity<?> createUsuario(@Validated @RequestBody CreacionUsuarioDTO usuarioDto) {
-      try {    
-             Usuario usuario = new Usuario();
-             usuario.setId(usuarioDto.getId());
-             usuario.setNombre(usuarioDto.getNombre());
-             usuario.setRut(usuarioDto.getRut());
-             usuario.setDireccion(usuarioDto.getDireccion());
-             usuario.setComuna(usuarioDto.getComuna());
-             usuario.setRolId(usuarioDto.getRolId());        
-
-              Roles rol = rolesService.getRolesById(usuarioDto.getRolId()).orElseThrow(() -> new RuntimeException("Rol no encontrado"));
-
-              usuario.setRol(rol);   
-              Usuario nuevoUsuario = usuarioService.createUsuario(usuario);
-
-              Auth auth = new Auth();
-              auth.setUsername(usuarioDto.getUsername());
-              auth.setPassword(usuarioDto.getPassword());
-              auth = authService.createAuth(auth);
-
-               return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
-        } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear el usuario:          " + e);
-             }
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
-    try{        
-        Optional<Usuario> usuarioExistente = usuarioService.getUsuarioById(id);
-        if(usuarioExistente.isPresent())
-        {
-            Usuario usuarioActual = usuarioExistente.get();
-
-            if(usuario.getRolId() != null){           
-                Roles rol = rolesService.getRolesById(usuario.getRolId())
-                    .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
-                usuarioActual.setRol(rol);
-            }    
-  
-
-            if(usuario.getDireccion() != null){               
-                usuarioActual.setDireccion((usuario.getDireccion()));            
-            }
-
-            if(usuario.getComuna() != null){
-                usuarioActual.setComuna(usuario.getComuna());            
-            }           
-         
-            Usuario usuarioActualizado = usuarioService.updateUsuario(id, usuarioActual);
-            return ResponseEntity.ok(usuarioActualizado);
-        }else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
-        } 
-        } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar el usuario:          " + e);
-     }      
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
-    Optional<Usuario> usuario = usuarioService.getUsuarioById(id);
-        if (usuario.isPresent()) {
-            usuarioService.deleteUsuario(id);
-            return ResponseEntity.ok("Usuario eliminado correctamente");
+            EntityModel<Usuario> resource = EntityModel.of(usuario.get(),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(id)).withSelfRel(),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios()).withRel("all-usuarios"));
+            return ResponseEntity.ok(resource);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
         }
-}
+    }  
+  
+    @PostMapping
+    public ResponseEntity<?> createUsuario(@Validated @RequestBody CreacionUsuarioDTO usuarioDto) {
+        try {
+            Usuario nuevoUsuario = new Usuario();
+            nuevoUsuario.setNombre(usuarioDto.getNombre());
+            nuevoUsuario.setRut(usuarioDto.getRut());
+            nuevoUsuario.setDireccion(usuarioDto.getDireccion());
+            nuevoUsuario.setComuna(usuarioDto.getComuna());
+            nuevoUsuario.setRolId(usuarioDto.getRolId());
+            
+            // Asignar el rol al usuario basado en rolId
+            Roles rol = rolesService.getRolesById(usuarioDto.getRolId()).orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+            nuevoUsuario.setRol(rol);
+
+            // Crear el usuario y el Auth vinculado
+            nuevoUsuario = usuarioService.createUsuario(nuevoUsuario);
+            Auth auth = new Auth();
+            auth.setUsername(usuarioDto.getUsername());
+            auth.setPassword(usuarioDto.getPassword());
+            authService.createAuth(auth);
+
+            // Crear el recurso HATEOAS
+            EntityModel<Usuario> resource = EntityModel.of(nuevoUsuario,
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(nuevoUsuario.getId())).withSelfRel(),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios()).withRel("all-usuarios"));
+            return ResponseEntity.status(HttpStatus.CREATED).body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear el usuario: " + e.getMessage());
+        }
+    }
+
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
+        try {
+            Usuario updatedUsuario = usuarioService.updateUsuario(id, usuario);
+            EntityModel<Usuario> resource = EntityModel.of(updatedUsuario,
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(id)).withSelfRel(),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios()).withRel("all-usuarios"));
+            return ResponseEntity.ok(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar el usuario: " + e.getMessage());
+        }
+    }
+
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
+        try {
+            usuarioService.deleteUsuario(id);
+            return ResponseEntity.ok().body("Usuario eliminado correctamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        }
+    }
 
 }
