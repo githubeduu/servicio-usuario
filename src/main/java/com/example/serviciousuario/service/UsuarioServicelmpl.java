@@ -50,7 +50,7 @@ public class UsuarioServicelmpl implements UsuarioService{
             }
 
             return usuarioRepository.save(usuarioExistente);
-        }).orElse(null);  // Retorna null si el usuario no existe
+        }).orElse(null);
     }
 
     @Override
