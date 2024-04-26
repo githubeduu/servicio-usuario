@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import java.util.Map;
+import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -110,20 +112,17 @@ public class UsuarioController {
             nuevoUsuario.setRut(usuarioDto.getRut());
             nuevoUsuario.setDireccion(usuarioDto.getDireccion());
             nuevoUsuario.setComuna(usuarioDto.getComuna());
-            nuevoUsuario.setRolId(usuarioDto.getRolId());
-            
-            // Asignar el rol al usuario basado en rolId
+            nuevoUsuario.setRolId(usuarioDto.getRolId());            
+           
             Roles rol = rolesService.getRolesById(usuarioDto.getRolId()).orElseThrow(() -> new RuntimeException("Rol no encontrado"));
             nuevoUsuario.setRol(rol);
 
-            // Crear el usuario y el Auth vinculado
             nuevoUsuario = usuarioService.createUsuario(nuevoUsuario);
             Auth auth = new Auth();
             auth.setUsername(usuarioDto.getUsername());
             auth.setPassword(usuarioDto.getPassword());
             authService.createAuth(auth);
-
-            // Crear el recurso HATEOAS
+          
             EntityModel<Usuario> resource = EntityModel.of(nuevoUsuario,
                 WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(nuevoUsuario.getId())).withSelfRel(),
                 WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios()).withRel("all-usuarios"));
@@ -152,7 +151,12 @@ public class UsuarioController {
     public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
         try {
             usuarioService.deleteUsuario(id);
-            return ResponseEntity.ok().body("Usuario eliminado correctamente");
+            Map<String, String> response = Collections.singletonMap("message", "Usuario eliminado correctamente");
+            EntityModel<Map<String, String>> resource = EntityModel.of(response,
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios()).withRel("all-usuarios"),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).createUsuario(null)).withRel("create-usuario"));
+
+            return ResponseEntity.ok(resource);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
         }
