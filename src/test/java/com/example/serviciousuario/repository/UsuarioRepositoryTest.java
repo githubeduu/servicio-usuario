@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import com.example.serviciousuario.model.Roles;
 import com.example.serviciousuario.model.Usuario;
 
 
@@ -16,15 +17,18 @@ import com.example.serviciousuario.model.Usuario;
 public class UsuarioRepositoryTest {
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private RolesRepository rolesRepository;
 
     @Test
     public void crearUsuarioTest(){
+        Roles rol = rolesRepository.findById(1L).orElseThrow(() -> new RuntimeException("Rol no encontrado"));
         Usuario usuario = new Usuario();
         usuario.setNombre("Andrea Miranda");
         usuario.setRut("12345678-9");
         usuario.setDireccion("Rio boroa 1744");
         usuario.setComuna("Cerro navia");
-        usuario.setRolId(1L);
+        usuario.setRol(rol);
 
         Usuario resultado = usuarioRepository.save(usuario);
 
@@ -33,6 +37,6 @@ public class UsuarioRepositoryTest {
         assertEquals("12345678-9", resultado.getRut());
         assertEquals("Rio boroa 1744", resultado.getDireccion());
         assertEquals("Cerro navia", resultado.getComuna());
-        assertEquals(1L, resultado.getRolId());
+        assertNotNull(resultado.getRoles());
     }
 }
