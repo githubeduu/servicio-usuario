@@ -1,6 +1,7 @@
 package com.example.serviciousuario.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,7 +35,7 @@ public class UsuarioServiceTest {
     }
 
     @Test
-    public void crearUsuarioTest(){
+    public void CrearUsuarioTest(){
 
         when(usuarioRepositoryMock.save(any())).thenReturn(usuario);
 
@@ -47,6 +48,18 @@ public class UsuarioServiceTest {
 
         verify(usuarioRepositoryMock).save(usuario);
 
+    }
+
+    @Test
+    public void CrearUsuarioErrorTest() {
+
+        when(usuarioRepositoryMock.save(any())).thenThrow(new RuntimeException("Error de base de datos"));
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            usuarioServicio.createUsuario(usuario);
+        });
+
+        assertEquals("Error de base de datos", exception.getMessage());
     }
 
 }
