@@ -26,9 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.serviciousuario.DTO.CreacionUsuarioDTO;
 import com.example.serviciousuario.DTO.LoginDTO;
 import com.example.serviciousuario.model.Auth;
+import com.example.serviciousuario.model.Productos;
 import com.example.serviciousuario.model.Roles;
 import com.example.serviciousuario.model.Usuario;
 import com.example.serviciousuario.service.AuthService;
+import com.example.serviciousuario.service.ProductoService;
 import com.example.serviciousuario.service.RolesService;
 import com.example.serviciousuario.service.UsuarioService;
 
@@ -43,6 +45,8 @@ public class UsuarioController {
     private RolesService rolesService;
     @Autowired
     private AuthService authService;
+    @Autowired
+    private ProductoService productosService;
     
 
     @PostMapping("/signin")
@@ -93,6 +97,23 @@ public class UsuarioController {
         return ResponseEntity.ok(resources);
     }
 
+    @GetMapping("/productos")
+    public ResponseEntity<CollectionModel<EntityModel<Productos>>> getProductos() {
+        List<EntityModel<Productos>> productos = productosService.getAllProductos().stream()
+            .map(producto -> EntityModel.of(producto,
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProductosById(producto.getId())).withSelfRel()))
+            .collect(Collectors.toList());
+
+        WebMvcLinkBuilder linkToAllProductos = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProductos());
+        CollectionModel<EntityModel<Productos>> resources = CollectionModel.of(productos, linkToAllProductos.withRel("all-productos"));
+        return ResponseEntity.ok(resources);
+    }
+
+    @GetMapping("/productos/{id}")
+    public ResponseEntity<EntityModel<Productos>> getProductosById(Long id) {
+        // Lógica para obtener un producto por su ID
+        return ResponseEntity.notFound().build();
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getUsuarioById(@PathVariable Long id) {
