@@ -22,4 +22,25 @@ public class ProductoServicelmpl implements ProductoService {
     public Optional<Productos> getProductosById(Long id){
         return productosRepository.findById(id);
     }
+
+    @Override
+    public List<Productos> getProductosByCategoriaId(Long categoriaId) {
+        return productosRepository.findByCategoriaId(categoriaId);
+    }
+
+    @Override
+    public Productos crearProducto(Productos producto) {
+        return productosRepository.save(producto);
+    }
+
+    @Override
+    public Productos actualizarProducto(Productos producto) {
+        return productosRepository.save(producto);
+    }
+
+    @Override
+    public void eliminarProducto(Long id) {
+        productosRepository.deleteById(id);
+    }
+
 }

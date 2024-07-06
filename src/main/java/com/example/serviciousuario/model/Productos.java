@@ -1,13 +1,6 @@
 package com.example.serviciousuario.model;
 
-import jakarta.annotation.Nonnull;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "productos")
@@ -16,88 +9,79 @@ public class Productos {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Nonnull
-    @Column(name = "nombre")
+    @Column(name = "nombre", nullable = false)
     private String nombre;
 
     @Lob
     @Column(name = "descripcion", columnDefinition = "CLOB")
     private String descripcion;
 
-    @Nonnull
-    @Column(name = "imagenurl")
+    @Column(name = "imagenurl", nullable = false)
     private String imagenurl;
 
-    @Nonnull
-    @Column(name = "precio")
+    @Column(name = "precio", nullable = false)
     private int precio;
 
-    @Nonnull
-    @Column(name = "descuento")
+    @Column(name = "descuento", nullable = false)
     private boolean descuento;
 
-    @Nonnull
-    @Column(name = "categoriaid")
+    @Column(name = "categoriaid", nullable = false)
     private int categoriaid;
 
-    //getters
-    public Long getId(){
+    // Getters y setters
+    public Long getId() {
         return id;
     }
 
-    public String getNombre(){
-        return nombre;
-    }
-
-    public String getDescripcion(){
-        return descripcion;
-    }
-
-    public String getImagenurl(){
-        return imagenurl;
-    }    
-
-    public int getPrecio(){
-        return precio;
-    }
-
-    public boolean getDescuento(){
-        return descuento;
-    }
-
-    public int getCategoriaid(){
-        return categoriaid;
-    }
-
-
-    //setters
-    public void setId(long id){
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public void setNombre(String nombre){
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
         this.nombre = nombre;
     }
 
-    public void setDescripcion(String descripcion){
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
     }
 
-    public void setImagenurl(String imagenUrl){
+    public String getImagenurl() {
+        return imagenurl;
+    }
+
+    public void setImagenurl(String imagenurl) {
         this.imagenurl = imagenurl;
     }
 
-    public void setPrecio(int precio){
+    public int getPrecio() {
+        return precio;
+    }
+
+    public void setPrecio(int precio) {
         this.precio = precio;
     }
 
-    public void setDescuento(boolean descuento){
+    public boolean isDescuento() {
+        return descuento;
+    }
+
+    public void setDescuento(boolean descuento) {
         this.descuento = descuento;
     }
 
-    public void setcategoriaid(int categoriaid){
-        this.categoriaid = categoriaid;
+    public int getCategoriaid() {
+        return categoriaid;
     }
 
-
+    public void setCategoriaid(int categoriaid) {
+        this.categoriaid = categoriaid;
+    }
 }

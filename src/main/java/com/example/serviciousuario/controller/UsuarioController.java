@@ -98,21 +98,45 @@ public class UsuarioController {
     }
 
     @GetMapping("/productos")
-    public ResponseEntity<CollectionModel<EntityModel<Productos>>> getProductos() {
-        List<EntityModel<Productos>> productos = productosService.getAllProductos().stream()
-            .map(producto -> EntityModel.of(producto,
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProductosById(producto.getId())).withSelfRel()))
-            .collect(Collectors.toList());
-
-        WebMvcLinkBuilder linkToAllProductos = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProductos());
-        CollectionModel<EntityModel<Productos>> resources = CollectionModel.of(productos, linkToAllProductos.withRel("all-productos"));
-        return ResponseEntity.ok(resources);
+    public ResponseEntity<List<Productos>> getProductos() {
+        List<Productos> productos = productosService.getAllProductos();
+        return ResponseEntity.ok(productos);
+    }
+    @GetMapping("/productos/categoria/{categoriaId}")
+    public ResponseEntity<List<Productos>> getProductosByCategoriaId(@PathVariable Long categoriaId) {
+        List<Productos> productos = productosService.getProductosByCategoriaId(categoriaId);
+        return ResponseEntity.ok(productos);
     }
 
-    @GetMapping("/productos/{id}")
-    public ResponseEntity<EntityModel<Productos>> getProductosById(Long id) {
-        // Lógica para obtener un producto por su ID
-        return ResponseEntity.notFound().build();
+    @PostMapping("/productos")
+    public ResponseEntity<Productos> crearProducto(@RequestBody Productos producto) {
+        Productos nuevoProducto = productosService.crearProducto(producto);
+        return new ResponseEntity<>(nuevoProducto, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/productos/{id}")
+    public ResponseEntity<Productos> actualizarProducto(@PathVariable Long id, @RequestBody Productos producto) {
+        Optional<Productos> productoExistente = productosService.getProductosById(id);
+        
+        if (productoExistente.isPresent()) {
+            producto.setId(id); // Asegura que el producto a actualizar tenga el mismo ID que el solicitado
+            Productos productoActualizado = productosService.actualizarProducto(producto);
+            return new ResponseEntity<>(productoActualizado, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("/productos/{id}")
+    public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
+        Optional<Productos> productoExistente = productosService.getProductosById(id);
+        
+        if (productoExistente.isPresent()) {
+            productosService.eliminarProducto(id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping("/{id}")
