@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import java.util.Map;
 import java.util.Collections;
+import java.util.HashMap;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -26,11 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.serviciousuario.DTO.CreacionUsuarioDTO;
 import com.example.serviciousuario.DTO.LoginDTO;
 import com.example.serviciousuario.model.Auth;
-import com.example.serviciousuario.model.Productos;
 import com.example.serviciousuario.model.Roles;
 import com.example.serviciousuario.model.Usuario;
 import com.example.serviciousuario.service.AuthService;
-import com.example.serviciousuario.service.ProductoService;
 import com.example.serviciousuario.service.RolesService;
 import com.example.serviciousuario.service.UsuarioService;
 
@@ -45,21 +45,31 @@ public class UsuarioController {
     private RolesService rolesService;
     @Autowired
     private AuthService authService;
-    @Autowired
-    private ProductoService productosService;
     
 
     @PostMapping("/signin")
-    public ResponseEntity<String> login(@RequestBody LoginDTO loginDto) {
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDto) {
         String username = loginDto.getUsername();
         String password = loginDto.getPassword();
-       
-        if (authService.validatePassword(username, password)) {
-            return ResponseEntity.ok("Contraseña válida");
+    
+        // Validar las credenciales
+        Auth auth = authService.validatePassword(username, password);
+    
+        if (auth != null) {
+            Long usuarioId = auth.getUsuario().getId(); // Obtener el ID del usuario desde Auth
+            Optional<Usuario> usuarioOptional = usuarioService.getUsuarioById(usuarioId);
+    
+            if (usuarioOptional.isPresent()) {
+                Usuario usuario = usuarioOptional.get();
+                return ResponseEntity.status(200).body(usuario); // Devolver el usuario encontrado
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+            }
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Contraseña incorrecta");
         }
     }
+    
     
     @GetMapping
     public CollectionModel<EntityModel<Usuario>> getUsuarios() {
@@ -97,48 +107,6 @@ public class UsuarioController {
         return ResponseEntity.ok(resources);
     }
 
-    @GetMapping("/productos")
-    public ResponseEntity<List<Productos>> getProductos() {
-        List<Productos> productos = productosService.getAllProductos();
-        return ResponseEntity.ok(productos);
-    }
-    @GetMapping("/productos/categoria/{categoriaId}")
-    public ResponseEntity<List<Productos>> getProductosByCategoriaId(@PathVariable Long categoriaId) {
-        List<Productos> productos = productosService.getProductosByCategoriaId(categoriaId);
-        return ResponseEntity.ok(productos);
-    }
-
-    @PostMapping("/productos")
-    public ResponseEntity<Productos> crearProducto(@RequestBody Productos producto) {
-        Productos nuevoProducto = productosService.crearProducto(producto);
-        return new ResponseEntity<>(nuevoProducto, HttpStatus.CREATED);
-    }
-
-    @PutMapping("/productos/{id}")
-    public ResponseEntity<Productos> actualizarProducto(@PathVariable Long id, @RequestBody Productos producto) {
-        Optional<Productos> productoExistente = productosService.getProductosById(id);
-        
-        if (productoExistente.isPresent()) {
-            producto.setId(id); // Asegura que el producto a actualizar tenga el mismo ID que el solicitado
-            Productos productoActualizado = productosService.actualizarProducto(producto);
-            return new ResponseEntity<>(productoActualizado, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @DeleteMapping("/productos/{id}")
-    public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
-        Optional<Productos> productoExistente = productosService.getProductosById(id);
-        
-        if (productoExistente.isPresent()) {
-            productosService.eliminarProducto(id);
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<?> getUsuarioById(@PathVariable Long id) {
         Optional<Usuario> usuario = usuarioService.getUsuarioById(id);
@@ -166,9 +134,13 @@ public class UsuarioController {
             nuevoUsuario.setRol(rol);
 
             nuevoUsuario = usuarioService.createUsuario(nuevoUsuario);
+
             Auth auth = new Auth();
             auth.setUsername(usuarioDto.getUsername());
             auth.setPassword(usuarioDto.getPassword());
+            auth.setUsuario(nuevoUsuario); // Asociar el usuario creado con este Auth
+    
+            // Crear el Auth en la base de datos
             authService.createAuth(auth);
           
             EntityModel<Usuario> resource = EntityModel.of(nuevoUsuario,

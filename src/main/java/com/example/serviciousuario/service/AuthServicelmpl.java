@@ -12,12 +12,12 @@ public class AuthServicelmpl implements AuthService {
     @Autowired
     private AuthRepository authRepository;
 
+    @Autowired
+    private UsuarioService usuarioService;
+
     @Override
-    public boolean validatePassword(String username, String password) {
-     
-        Auth auth = authRepository.findByUsernameAndPassword(username, password);
-        
-        return auth != null;
+    public Auth validatePassword(String username, String password) {
+        return authRepository.findByUsernameAndPassword(username, password);
     }
 
     @Override
