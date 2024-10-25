@@ -6,8 +6,6 @@ import java.util.stream.Collectors;
 
 import java.util.Map;
 import java.util.Collections;
-import java.util.HashMap;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
