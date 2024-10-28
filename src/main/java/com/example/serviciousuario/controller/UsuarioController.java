@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,11 +21,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.serviciousuario.DTO.CreacionUsuarioDTO;
 import com.example.serviciousuario.DTO.LoginDTO;
+import com.example.serviciousuario.DTO.UserResponse;
 import com.example.serviciousuario.model.Auth;
 import com.example.serviciousuario.model.Roles;
 import com.example.serviciousuario.model.Usuario;
@@ -166,10 +169,21 @@ public class UsuarioController {
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
+    public ResponseEntity<?> deleteUsuario(
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         try {
+
+            System.out.println("token" +    token   );
+            // Valida el token en el servicio de autenticación
+            UserResponse userResponse = authService.validateToken(token);
+            if (userResponse == null) {
+                
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido o expirado");
+            }
             usuarioService.deleteUsuario(id);
             Map<String, String> response = Collections.singletonMap("message", "Usuario eliminado correctamente");
+
             EntityModel<Map<String, String>> resource = EntityModel.of(response,
                 WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios()).withRel("all-usuarios"),
                 WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).createUsuario(null)).withRel("create-usuario"));

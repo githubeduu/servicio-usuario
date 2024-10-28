@@ -8,10 +8,12 @@ D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\mode
 D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\service\UsuarioService.java
 D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\service\UsuarioServicelmpl.java
 D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\DTO\CreacionUsuarioDTO.java
+D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\security\SecurityConfig.java
 D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\model\Usuario.java
 D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\repository\RolesRepository.java
 D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\service\AuthServicelmpl.java
 D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\service\RolesServicelmpl.java
 D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\controller\UsuarioController.java
+D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\DTO\UserResponse.java
 D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\repository\AuthRepository.java
 D:\Proyecto duoc\servicio-usuario\src\main\java\com\example\serviciousuario\repository\UsuarioRepository.java
