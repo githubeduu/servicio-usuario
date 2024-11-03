@@ -11,8 +11,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.example.serviciousuario.config.JwtAuthenticationFilter;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
