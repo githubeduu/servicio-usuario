@@ -67,7 +67,7 @@ public class UsuarioController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
             }
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Contraseña incorrecta");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Contraseña incorrecta");
         }
     }
     
