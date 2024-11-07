@@ -1,0 +1,5 @@
+mvn clean verify sonar:sonar \
+  -Dsonar.projectKey=githubeduu_servicio-usuario_760374ef-aac2-487c-9f2e-e7d265fcd54c \
+  -Dsonar.projectName='servicio-usuario' \
+  -Dsonar.host.url=http://localhost:9000 \
+  -Dsonar.token=sqp_613486a4b03e2e41582a5c82091bf5b71ded540d
