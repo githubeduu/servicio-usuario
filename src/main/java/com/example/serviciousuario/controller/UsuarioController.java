@@ -139,7 +139,7 @@ public class UsuarioController {
             Auth auth = new Auth();
             auth.setUsername(usuarioDto.getUsername());
             auth.setPassword(usuarioDto.getPassword());
-            auth.setUsuario(nuevoUsuario); // Asociar el usuario creado con este Auth
+            auth.setUsuario(nuevoUsuario);
     
             // Crear el Auth en la base de datos
             authService.createAuth(auth);
