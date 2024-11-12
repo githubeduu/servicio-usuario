@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,17 +21,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.serviciousuario.DTO.CreacionUsuarioDTO;
 import com.example.serviciousuario.DTO.LoginDTO;
+import com.example.serviciousuario.DTO.UserResponse;
 import com.example.serviciousuario.model.Auth;
-import com.example.serviciousuario.model.Productos;
 import com.example.serviciousuario.model.Roles;
 import com.example.serviciousuario.model.Usuario;
 import com.example.serviciousuario.service.AuthService;
-import com.example.serviciousuario.service.ProductoService;
 import com.example.serviciousuario.service.RolesService;
 import com.example.serviciousuario.service.UsuarioService;
 
@@ -45,21 +46,31 @@ public class UsuarioController {
     private RolesService rolesService;
     @Autowired
     private AuthService authService;
-    @Autowired
-    private ProductoService productosService;
     
 
     @PostMapping("/signin")
-    public ResponseEntity<String> login(@RequestBody LoginDTO loginDto) {
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDto) {
         String username = loginDto.getUsername();
         String password = loginDto.getPassword();
-       
-        if (authService.validatePassword(username, password)) {
-            return ResponseEntity.ok("Contraseña válida");
+    
+        // Validar las credenciales
+        Auth auth = authService.validatePassword(username, password);
+    
+        if (auth != null) {
+            Long usuarioId = auth.getUsuario().getId(); // Obtener el ID del usuario desde Auth
+            Optional<Usuario> usuarioOptional = usuarioService.getUsuarioById(usuarioId);
+    
+            if (usuarioOptional.isPresent()) {
+                Usuario usuario = usuarioOptional.get();
+                return ResponseEntity.status(200).body(usuario); // Devolver el usuario encontrado
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+            }
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Contraseña incorrecta");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Contraseña incorrecta");
         }
     }
+    
     
     @GetMapping
     public CollectionModel<EntityModel<Usuario>> getUsuarios() {
@@ -97,24 +108,6 @@ public class UsuarioController {
         return ResponseEntity.ok(resources);
     }
 
-    @GetMapping("/productos")
-    public ResponseEntity<CollectionModel<EntityModel<Productos>>> getProductos() {
-        List<EntityModel<Productos>> productos = productosService.getAllProductos().stream()
-            .map(producto -> EntityModel.of(producto,
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProductosById(producto.getId())).withSelfRel()))
-            .collect(Collectors.toList());
-
-        WebMvcLinkBuilder linkToAllProductos = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProductos());
-        CollectionModel<EntityModel<Productos>> resources = CollectionModel.of(productos, linkToAllProductos.withRel("all-productos"));
-        return ResponseEntity.ok(resources);
-    }
-
-    @GetMapping("/productos/{id}")
-    public ResponseEntity<EntityModel<Productos>> getProductosById(Long id) {
-        // Lógica para obtener un producto por su ID
-        return ResponseEntity.notFound().build();
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<?> getUsuarioById(@PathVariable Long id) {
         Optional<Usuario> usuario = usuarioService.getUsuarioById(id);
@@ -142,9 +135,13 @@ public class UsuarioController {
             nuevoUsuario.setRol(rol);
 
             nuevoUsuario = usuarioService.createUsuario(nuevoUsuario);
+
             Auth auth = new Auth();
             auth.setUsername(usuarioDto.getUsername());
             auth.setPassword(usuarioDto.getPassword());
+            auth.setUsuario(nuevoUsuario);
+    
+            // Crear el Auth en la base de datos
             authService.createAuth(auth);
           
             EntityModel<Usuario> resource = EntityModel.of(nuevoUsuario,
@@ -172,10 +169,21 @@ public class UsuarioController {
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
+    public ResponseEntity<?> deleteUsuario(
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         try {
+
+            System.out.println("token" +    token   );
+            // Valida el token en el servicio de autenticación
+            UserResponse userResponse = authService.validateToken(token);
+            if (userResponse == null) {
+                
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido o expirado");
+            }
             usuarioService.deleteUsuario(id);
             Map<String, String> response = Collections.singletonMap("message", "Usuario eliminado correctamente");
+
             EntityModel<Map<String, String>> resource = EntityModel.of(response,
                 WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios()).withRel("all-usuarios"),
                 WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).createUsuario(null)).withRel("create-usuario"));

@@ -1,8 +1,10 @@
 package com.example.serviciousuario.service;
 
+import com.example.serviciousuario.DTO.UserResponse;
 import com.example.serviciousuario.model.Auth;
 
 public interface AuthService {
-    boolean validatePassword(String username, String password);
-    Auth createAuth(Auth auth); 
+    Auth validatePassword(String username, String password);
+    Auth createAuth(Auth auth);
+    UserResponse validateToken(String token);
 }
