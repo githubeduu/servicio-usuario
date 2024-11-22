@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.example.serviciousuario.DTO.UserResponse;
 import com.example.serviciousuario.model.Auth;
+import com.example.serviciousuario.model.Usuario;
 import com.example.serviciousuario.repository.AuthRepository;
 
 @Service
@@ -34,7 +35,7 @@ public class AuthServicelmpl implements AuthService {
     @Override
     public UserResponse validateToken(String token) {
         try {
-            String url = "http://localhost:8085/validate";
+            String url = "http://localhost:8085/auth/validate";
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", token);
             HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -46,6 +47,5 @@ public class AuthServicelmpl implements AuthService {
             return null;
         }
     }
-
     
 }

@@ -6,14 +6,20 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.serviciousuario.model.Auth;
 import com.example.serviciousuario.model.Roles;
 import com.example.serviciousuario.model.Usuario;
+import com.example.serviciousuario.repository.AuthRepository;
 import com.example.serviciousuario.repository.UsuarioRepository;
 
 @Service
 public class UsuarioServicelmpl implements UsuarioService{
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private AuthRepository authRepository;
+    
     @Autowired
     private RolesService rolesService;
 
@@ -53,8 +59,20 @@ public class UsuarioServicelmpl implements UsuarioService{
         }).orElse(null);
     }
 
+   
     @Override
-    public void deleteUsuario(Long id){
+    public void deleteUsuario(Long id) {
+        // Verificar si el usuario existe
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Eliminar el registro relacionado en Auth si existe
+        Auth auth = authRepository.findByUsuarioId(id);
+        if (auth != null) {
+            authRepository.delete(auth);
+        }
+
+        // Eliminar el usuario
         usuarioRepository.deleteById(id);
-    } 
+    }
 }
