@@ -1,6 +1,0 @@
-projectKey=githubeduu_servicio-usuario_760374ef-aac2-487c-9f2e-e7d265fcd54c
-serverUrl=http://localhost:9000
-serverVersion=10.7.0.96327
-dashboardUrl=http://localhost:9000/dashboard?id=githubeduu_servicio-usuario_760374ef-aac2-487c-9f2e-e7d265fcd54c
-ceTaskId=5ea0a859-8693-4c9e-95fa-135b26756abc
-ceTaskUrl=http://localhost:9000/api/ce/task?id=5ea0a859-8693-4c9e-95fa-135b26756abc
