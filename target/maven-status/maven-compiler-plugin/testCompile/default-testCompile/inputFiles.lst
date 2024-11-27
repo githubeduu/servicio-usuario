@@ -1,4 +1,13 @@
-D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\controller\UsuarioControllerTest.java
-D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\service\UsuarioServiceTest.java
+D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\service\UsuarioServicelmplTest.java
+D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\exception\ResourceNotFoundExceptionTest.java
+D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\service\AuthServicelmplTest.java
+D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\DTO\CreacionUsuarioDTOTest.java
 D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\repository\UsuarioRepositoryTest.java
+D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\DTO\LoginDTOTest.java
+D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\config\CorsConfigTest.java
 D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\ServiciousuarioApplicationTests.java
+D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\controller\UsuarioControllerTest.java
+D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\exception\GlobalExceptionHandlerTest.java
+D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\service\RolesServicelmplTest.java
+D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\DTO\UserResponseTest.java
+D:\Proyecto duoc\servicio-usuario\src\test\java\com\example\serviciousuario\config\JwtAuthenticationFilterTest.java
