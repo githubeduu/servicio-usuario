@@ -1,4 +1,13 @@
-com\example\serviciousuario\service\UsuarioServiceTest.class
+com\example\serviciousuario\config\JwtAuthenticationFilterTest.class
+com\example\serviciousuario\DTO\UserResponseTest.class
+com\example\serviciousuario\exception\ResourceNotFoundExceptionTest.class
+com\example\serviciousuario\service\AuthServicelmplTest.class
+com\example\serviciousuario\DTO\CreacionUsuarioDTOTest.class
+com\example\serviciousuario\DTO\LoginDTOTest.class
+com\example\serviciousuario\service\UsuarioServicelmplTest.class
+com\example\serviciousuario\ServicioUsuarioApplicationTests.class
+com\example\serviciousuario\config\CorsConfigTest.class
 com\example\serviciousuario\repository\UsuarioRepositoryTest.class
 com\example\serviciousuario\controller\UsuarioControllerTest.class
-com\example\serviciousuario\ServicioUsuarioApplicationTests.class
+com\example\serviciousuario\exception\GlobalExceptionHandlerTest.class
+com\example\serviciousuario\service\RolesServicelmplTest.class
