@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsuarioController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">servicio-usuario</a> &gt; <a href="index.source.html" class="el_package">com.example.serviciousuario.controller</a> &gt; <span class="el_source">UsuarioController.java</span></div><h1>UsuarioController.java</h1><pre class="source lang-java linenums">package com.example.serviciousuario.controller;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import java.util.Map;
+import java.util.Collections;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.serviciousuario.DTO.CreacionUsuarioDTO;
+import com.example.serviciousuario.DTO.LoginDTO;
+import com.example.serviciousuario.DTO.UserResponse;
+import com.example.serviciousuario.model.Auth;
+import com.example.serviciousuario.model.Roles;
+import com.example.serviciousuario.model.Usuario;
+import com.example.serviciousuario.service.AuthService;
+import com.example.serviciousuario.service.RolesService;
+import com.example.serviciousuario.service.UsuarioService;
+
+import jakarta.persistence.EntityNotFoundException;
+
+@RestController
+@RequestMapping(&quot;/usuario&quot;)
+<span class="fc" id="L42">public class UsuarioController {</span>
+    @Autowired
+    private UsuarioService usuarioService;
+    @Autowired
+    private RolesService rolesService;
+    @Autowired
+    private AuthService authService;
+    
+
+    @PostMapping(&quot;/signin&quot;)
+    public ResponseEntity&lt;?&gt; login(@RequestBody LoginDTO loginDto) {
+<span class="fc" id="L53">        String username = loginDto.getUsername();</span>
+<span class="fc" id="L54">        String password = loginDto.getPassword();</span>
+    
+        // Validar las credenciales
+<span class="fc" id="L57">        Auth auth = authService.validatePassword(username, password);</span>
+    
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (auth != null) {</span>
+<span class="fc" id="L60">            Long usuarioId = auth.getUsuario().getId(); // Obtener el ID del usuario desde Auth</span>
+<span class="fc" id="L61">            Optional&lt;Usuario&gt; usuarioOptional = usuarioService.getUsuarioById(usuarioId);</span>
+    
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">            if (usuarioOptional.isPresent()) {</span>
+<span class="fc" id="L64">                Usuario usuario = usuarioOptional.get();</span>
+<span class="fc" id="L65">                return ResponseEntity.status(200).body(usuario); // Devolver el usuario encontrado</span>
+            } else {
+<span class="nc" id="L67">                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Usuario no encontrado&quot;);</span>
+            }
+        } else {
+<span class="fc" id="L70">            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Contraseña incorrecta&quot;);</span>
+        }
+    }
+    
+    
+    @GetMapping
+    public CollectionModel&lt;EntityModel&lt;Usuario&gt;&gt; getUsuarios() {
+<span class="fc" id="L77">        List&lt;EntityModel&lt;Usuario&gt;&gt; usuarios = usuarioService.getAllUsuario().stream()</span>
+<span class="fc" id="L78">            .map(usuario -&gt; EntityModel.of(usuario,</span>
+<span class="fc" id="L79">                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(usuario.getId())).withSelfRel()))</span>
+<span class="fc" id="L80">            .collect(Collectors.toList());</span>
+
+<span class="fc" id="L82">        WebMvcLinkBuilder linkTo = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios());</span>
+<span class="fc" id="L83">        return CollectionModel.of(usuarios, linkTo.withRel(&quot;usuarios&quot;));</span>
+    }
+
+    @GetMapping(&quot;/roles/{id}&quot;)
+    public ResponseEntity&lt;?&gt; getRolById(@PathVariable Long id) {
+<span class="fc" id="L88">        Optional&lt;Roles&gt; rol = rolesService.getRolesById(id);</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        if (rol.isPresent()) {</span>
+<span class="fc" id="L90">            EntityModel&lt;Roles&gt; resource = EntityModel.of(rol.get(),</span>
+<span class="fc" id="L91">                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getRolById(id)).withSelfRel());</span>
+<span class="fc" id="L92">            return ResponseEntity.ok(resource);</span>
+        } else {
+<span class="fc" id="L94">            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Rol no encontrado&quot;);</span>
+        }
+    }
+
+
+    @GetMapping(&quot;/roles&quot;)
+    public ResponseEntity&lt;CollectionModel&lt;EntityModel&lt;Roles&gt;&gt;&gt; getRoles() {
+<span class="fc" id="L101">        List&lt;EntityModel&lt;Roles&gt;&gt; roles = rolesService.getAllRoles().stream()</span>
+<span class="fc" id="L102">            .map(rol -&gt; EntityModel.of(rol,</span>
+<span class="fc" id="L103">                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getRolById(rol.getId())).withSelfRel()))</span>
+<span class="fc" id="L104">            .collect(Collectors.toList());</span>
+
+<span class="fc" id="L106">        WebMvcLinkBuilder linkToAllRoles = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getRoles());</span>
+<span class="fc" id="L107">        CollectionModel&lt;EntityModel&lt;Roles&gt;&gt; resources = CollectionModel.of(roles, linkToAllRoles.withRel(&quot;all-roles&quot;));</span>
+<span class="fc" id="L108">        return ResponseEntity.ok(resources);</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;?&gt; getUsuarioById(@PathVariable Long id) {
+<span class="fc" id="L113">        Optional&lt;Usuario&gt; usuario = usuarioService.getUsuarioById(id);</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">        if (usuario.isPresent()) {</span>
+<span class="fc" id="L115">            EntityModel&lt;Usuario&gt; resource = EntityModel.of(usuario.get(),</span>
+<span class="fc" id="L116">                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(id)).withSelfRel(),</span>
+<span class="fc" id="L117">                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios()).withRel(&quot;all-usuarios&quot;));</span>
+<span class="fc" id="L118">            return ResponseEntity.ok(resource);</span>
+        } else {
+<span class="fc" id="L120">            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Usuario no encontrado&quot;);</span>
+        }
+    }  
+  
+    @PostMapping
+    public ResponseEntity&lt;?&gt; createUsuario(@Validated @RequestBody CreacionUsuarioDTO usuarioDto) {
+        try {
+<span class="fc" id="L127">            Usuario nuevoUsuario = new Usuario();</span>
+<span class="fc" id="L128">            nuevoUsuario.setNombre(usuarioDto.getNombre());</span>
+<span class="fc" id="L129">            nuevoUsuario.setRut(usuarioDto.getRut());</span>
+<span class="fc" id="L130">            nuevoUsuario.setDireccion(usuarioDto.getDireccion());</span>
+<span class="fc" id="L131">            nuevoUsuario.setComuna(usuarioDto.getComuna());</span>
+<span class="fc" id="L132">            nuevoUsuario.setRolId(usuarioDto.getRolId());            </span>
+           
+<span class="pc" id="L134">            Roles rol = rolesService.getRolesById(usuarioDto.getRolId()).orElseThrow(() -&gt; new RuntimeException(&quot;Rol no encontrado&quot;));</span>
+<span class="fc" id="L135">            nuevoUsuario.setRol(rol);</span>
+
+<span class="fc" id="L137">            nuevoUsuario = usuarioService.createUsuario(nuevoUsuario);</span>
+
+<span class="fc" id="L139">            Auth auth = new Auth();</span>
+<span class="fc" id="L140">            auth.setUsername(usuarioDto.getUsername());</span>
+<span class="fc" id="L141">            auth.setPassword(usuarioDto.getPassword());</span>
+<span class="fc" id="L142">            auth.setUsuario(nuevoUsuario);</span>
+    
+            // Crear el Auth en la base de datos
+<span class="fc" id="L145">            authService.createAuth(auth);</span>
+          
+<span class="fc" id="L147">            EntityModel&lt;Usuario&gt; resource = EntityModel.of(nuevoUsuario,</span>
+<span class="fc" id="L148">                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(nuevoUsuario.getId())).withSelfRel(),</span>
+<span class="fc" id="L149">                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios()).withRel(&quot;all-usuarios&quot;));</span>
+<span class="fc" id="L150">            return ResponseEntity.status(HttpStatus.CREATED).body(resource);</span>
+<span class="nc" id="L151">        } catch (Exception e) {</span>
+<span class="nc" id="L152">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(&quot;Error al crear el usuario: &quot; + e.getMessage());</span>
+        }
+    }
+
+
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;?&gt; updateUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
+        try {
+<span class="fc" id="L160">            Usuario updatedUsuario = usuarioService.updateUsuario(id, usuario);</span>
+<span class="fc" id="L161">            EntityModel&lt;Usuario&gt; resource = EntityModel.of(updatedUsuario,</span>
+<span class="fc" id="L162">                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(id)).withSelfRel(),</span>
+<span class="fc" id="L163">                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios()).withRel(&quot;all-usuarios&quot;));</span>
+<span class="fc" id="L164">            return ResponseEntity.ok(resource);</span>
+<span class="nc" id="L165">        } catch (Exception e) {</span>
+<span class="nc" id="L166">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(&quot;Error al actualizar el usuario: &quot; + e.getMessage());</span>
+        }
+    }
+
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;?&gt; deleteUsuario(
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        try {
+
+<span class="fc" id="L177">            System.out.println(&quot;token&quot; +    token   );</span>
+            // Valida el token en el servicio de autenticación
+<span class="fc" id="L179">            UserResponse userResponse = authService.validateToken(token);</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">            if (userResponse == null) {</span>
+                
+<span class="fc" id="L182">                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(&quot;Token inválido o expirado&quot;);</span>
+            }
+<span class="fc" id="L184">            usuarioService.deleteUsuario(id);</span>
+<span class="fc" id="L185">            Map&lt;String, String&gt; response = Collections.singletonMap(&quot;message&quot;, &quot;Usuario eliminado correctamente&quot;);</span>
+
+<span class="fc" id="L187">            EntityModel&lt;Map&lt;String, String&gt;&gt; resource = EntityModel.of(response,</span>
+<span class="fc" id="L188">                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarios()).withRel(&quot;all-usuarios&quot;),</span>
+<span class="fc" id="L189">                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).createUsuario(null)).withRel(&quot;create-usuario&quot;));</span>
+
+<span class="fc" id="L191">            return ResponseEntity.ok(resource);</span>
+<span class="fc" id="L192">        } catch (Exception e) {</span>
+<span class="fc" id="L193">            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Usuario no encontrado&quot;);</span>
+        }
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity&lt;?&gt; handleEntityNotFound(EntityNotFoundException ex) {
+<span class="nc" id="L199">        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

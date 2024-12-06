@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtAuthenticationFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">servicio-usuario</a> &gt; <a href="index.source.html" class="el_package">com.example.serviciousuario.config</a> &gt; <span class="el_source">JwtAuthenticationFilter.java</span></div><h1>JwtAuthenticationFilter.java</h1><pre class="source lang-java linenums">package com.example.serviciousuario.config;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.example.serviciousuario.DTO.UserResponse;
+import com.example.serviciousuario.service.AuthService;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final AuthService authService;
+
+    @Autowired
+<span class="fc" id="L30">    public JwtAuthenticationFilter(AuthService authService) {</span>
+<span class="fc" id="L31">        this.authService = authService;</span>
+<span class="fc" id="L32">    }</span>
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
+<span class="fc" id="L38">        String header = request.getHeader(HttpHeaders.AUTHORIZATION);</span>
+<span class="pc bpc" id="L39" title="1 of 4 branches missed.">        if (header != null &amp;&amp; header.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="fc" id="L40">            String token = header.substring(7); // Extrae el token sin el prefijo &quot;Bearer &quot;</span>
+<span class="fc" id="L41">            Authentication auth = getAuthentication(token);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">            if (auth != null) {</span>
+<span class="fc" id="L43">                SecurityContextHolder.getContext().setAuthentication(auth);</span>
+            }
+        }
+        
+<span class="fc" id="L47">        filterChain.doFilter(request, response);</span>
+<span class="fc" id="L48">    }</span>
+
+    private Authentication getAuthentication(String token) {
+<span class="fc" id="L51">        UserResponse userResponse = authService.validateToken(token);</span>
+        
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        if (userResponse != null) {</span>
+<span class="fc" id="L54">            List&lt;SimpleGrantedAuthority&gt; authorities = userResponse.getAuthorities().stream()</span>
+<span class="fc" id="L55">                .map(SimpleGrantedAuthority::new)</span>
+<span class="fc" id="L56">                .collect(Collectors.toList());</span>
+
+<span class="fc" id="L58">            return new UsernamePasswordAuthenticationToken(userResponse.getUsername(), null, authorities);</span>
+        }
+        
+<span class="fc" id="L61">        return null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
