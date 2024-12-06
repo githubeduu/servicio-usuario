@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsuarioServicelmpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">servicio-usuario</a> &gt; <a href="index.source.html" class="el_package">com.example.serviciousuario.service</a> &gt; <span class="el_source">UsuarioServicelmpl.java</span></div><h1>UsuarioServicelmpl.java</h1><pre class="source lang-java linenums">package com.example.serviciousuario.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.serviciousuario.model.Auth;
+import com.example.serviciousuario.model.Roles;
+import com.example.serviciousuario.model.Usuario;
+import com.example.serviciousuario.repository.AuthRepository;
+import com.example.serviciousuario.repository.UsuarioRepository;
+
+@Service
+<span class="fc" id="L16">public class UsuarioServicelmpl implements UsuarioService{</span>
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private AuthRepository authRepository;
+    
+    @Autowired
+    private RolesService rolesService;
+
+    @Override
+    public List&lt;Usuario&gt; getAllUsuario(){
+<span class="fc" id="L28">        return usuarioRepository.findAll();</span>
+    }
+
+    @Override
+    public Optional&lt;Usuario&gt; getUsuarioById(Long id){
+<span class="fc" id="L33">        return usuarioRepository.findById(id);</span>
+    }
+
+    @Override
+    public Usuario createUsuario(Usuario usuario){         
+<span class="nc" id="L38">        return usuarioRepository.save(usuario);</span>
+    }
+
+    @Override
+    public Usuario updateUsuario(Long id, Usuario usuario) {
+<span class="fc" id="L43">        return usuarioRepository.findById(id).map(usuarioExistente -&gt; {</span>
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">            if (usuario.getRolId() != null) {</span>
+<span class="fc" id="L45">                Roles rol = rolesService.getRolesById(usuario.getRolId())</span>
+<span class="pc" id="L46">                        .orElseThrow(() -&gt; new RuntimeException(&quot;Rol no encontrado&quot;));</span>
+<span class="fc" id="L47">                usuarioExistente.setRol(rol);</span>
+            }
+
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">            if (usuario.getDireccion() != null) {</span>
+<span class="fc" id="L51">                usuarioExistente.setDireccion(usuario.getDireccion());</span>
+            }
+
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">            if (usuario.getComuna() != null) {</span>
+<span class="fc" id="L55">                usuarioExistente.setComuna(usuario.getComuna());</span>
+            }
+
+<span class="fc" id="L58">            return usuarioRepository.save(usuarioExistente);</span>
+<span class="fc" id="L59">        }).orElse(null);</span>
+    }
+
+   
+    @Override
+    public void deleteUsuario(Long id) {
+        // Verificar si el usuario existe
+<span class="fc" id="L66">        Usuario usuario = usuarioRepository.findById(id)</span>
+<span class="fc" id="L67">                .orElseThrow(() -&gt; new RuntimeException(&quot;Usuario no encontrado&quot;));</span>
+
+        // Eliminar el registro relacionado en Auth si existe
+<span class="fc" id="L70">        Auth auth = authRepository.findByUsuarioId(id);</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (auth != null) {</span>
+<span class="fc" id="L72">            authRepository.delete(auth);</span>
+        }
+
+        // Eliminar el usuario
+<span class="fc" id="L76">        usuarioRepository.deleteById(id);</span>
+<span class="fc" id="L77">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
